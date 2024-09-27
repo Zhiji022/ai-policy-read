@@ -1,5 +1,98 @@
-import os
-from typing import List
-from chainlit.types import AskFileResponse
+from operator import itemgetter
+from pydantic import BaseModel, InstanceOf
+
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_openai import ChatOpenAI
+from langchain_qdrant import QdrantVectorStore
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 import chainlit as cl
+
+from utils.prompts import RAG_PROMPT
+from utils.vector_store import get_default_documents, get_vector_store, process_uploaded_file
+from utils.models import EMBEDDING_MODEL, RAG_LLM
+
+
+class RAGRunnables(BaseModel):
+    rag_prompt_template: InstanceOf[ChatPromptTemplate]
+    vector_store: InstanceOf[QdrantVectorStore]
+    llm: InstanceOf[ChatOpenAI]
+        
+
+def create_rag_chain(vector_store, rag_prompt_template, llm):
+    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
+    rag_chain = ({"context": itemgetter("question") | retriever, "question": itemgetter("question")}
+                    | RunnablePassthrough.assign(context=itemgetter("context"))
+                    | {"response": rag_prompt_template | llm | StrOutputParser(), "context": itemgetter("context")})
+    return rag_chain
+
+welcome_message = """Hi, I am your AI-policy assistant. I can help you understand how the AI industry is evolving, especially as it relates to politics.
+My answers will be based on the following two documents:
+1. 2024: National Institute of Standards and Technology (NIST) Artificial Intelligent Risk Management Framework (PDF)
+2. 2022: Blueprint for an AI Bill of Rights: Making Automated Systems Work for the American People (PDF)
+If you need help with more updated information, upload a pdf file now.
+"""
+
+
+@cl.on_chat_start
+async def start():
+    
+    # ask new document
+    res = await cl.AskActionMessage(
+        content=welcome_message,
+        actions=[
+            cl.Action(name="upload", value="upload", label="📄Upload"),
+            cl.Action(name="continue", value="continue", label="👍Continue"),
+        ],
+    ).send()
+
+    
+    new_doc = None
+    
+    if res and res.get("value") == "continue":
+        await cl.Message(
+            content="Continue!",
+        ).send()
+        
+    elif res and res.get("value") == "upload":
+        files = await cl.AskFileMessage(
+            content="Please upload a pdf file to begin!",
+            accept=["application/pdf"],
+            max_size_mb=4,
+            timeout=90,
+        ).send()
+        file = files[0]
+
+        msg = cl.Message(content=f"Processing `{file.name}`...", disable_human_feedback=True)
+        await msg.send()
+        
+        # process new document
+        new_doc = process_uploaded_file(file)
+    
+    # process documents
+    documents = get_default_documents()
+    if new_doc:
+        documents.extend(new_doc)
+    
+    # create rag chain
+    rag_runnables = RAGRunnables(
+                        rag_prompt_template = ChatPromptTemplate(RAG_PROMPT),
+                        vector_store=get_vector_store(documents, EMBEDDING_MODEL),
+                        llm = RAG_LLM
+                    )
+    rag_chain = create_rag_chain(**rag_runnables.model_dump())
+    
+    cl.user_session('chain', rag_chain)
+
+@cl.on_message    
+async def main(message):
+    chain = cl.user_session.get("chain")
+
+    msg = cl.Message(content="")
+    result = await chain.invoke({'question': message.content})
+
+    async for stream_resp in result["response"]:
+        await msg.stream_token(stream_resp)
+
+    await msg.send()
