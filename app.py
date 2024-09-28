@@ -5,7 +5,7 @@ from langchain_core.prompts import ChatPromptTemplate
 from langchain_openai import ChatOpenAI
 from langchain_qdrant import QdrantVectorStore
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough
+from langchain_core.runnables import RunnablePassthrough, RunnableParallel
 
 import chainlit as cl
 
@@ -20,7 +20,7 @@ class RAGRunnables(BaseModel):
     llm: InstanceOf[ChatOpenAI]
         
 
-def create_rag_chain(vector_store, rag_prompt_template, llm):
+def create_rag_chain(rag_prompt_template, vector_store, llm):
     retriever = vector_store.as_retriever(search_kwargs={"k": 5})
     rag_chain = ({"context": itemgetter("question") | retriever, "question": itemgetter("question")}
                     | RunnablePassthrough.assign(context=itemgetter("context"))
@@ -30,7 +30,7 @@ def create_rag_chain(vector_store, rag_prompt_template, llm):
 welcome_message = """Hi, I am your AI-policy assistant. I can help you understand how the AI industry is evolving, especially as it relates to politics.
 My answers will be based on the following two documents:
 1. 2024: National Institute of Standards and Technology (NIST) Artificial Intelligent Risk Management Framework (PDF)
-2. 2022: Blueprint for an AI Bill of Rights: Making Automated Systems Work for the American People (PDF)
+2. 2022: Blueprint for an AI Bill of Rights: Making Automated Systems Work for the American People (PDF)\n
 If you need help with more updated information, upload a pdf file now.
 """
 
@@ -47,13 +47,10 @@ async def start():
         ],
     ).send()
 
-    
     new_doc = None
     
     if res and res.get("value") == "continue":
-        await cl.Message(
-            content="Continue!",
-        ).send()
+        pass
         
     elif res and res.get("value") == "upload":
         files = await cl.AskFileMessage(
@@ -77,22 +74,42 @@ async def start():
     
     # create rag chain
     rag_runnables = RAGRunnables(
-                        rag_prompt_template = ChatPromptTemplate(RAG_PROMPT),
-                        vector_store=get_vector_store(documents, EMBEDDING_MODEL),
+                        rag_prompt_template = ChatPromptTemplate.from_template(RAG_PROMPT),
+                        vector_store = get_vector_store(documents, EMBEDDING_MODEL),
                         llm = RAG_LLM
                     )
-    rag_chain = create_rag_chain(**rag_runnables.model_dump())
+    rag_chain = create_rag_chain(rag_runnables.rag_prompt_template, 
+                                 rag_runnables.vector_store, 
+                                 rag_runnables.llm)
     
-    cl.user_session('chain', rag_chain)
+    cl.user_session.set('chain', rag_chain)
 
 @cl.on_message    
 async def main(message):
     chain = cl.user_session.get("chain")
 
-    msg = cl.Message(content="")
-    result = await chain.invoke({'question': message.content})
+    # msg = cl.Message(content="")
+    result = await chain.ainvoke({'question': message.content})
 
-    async for stream_resp in result["response"]:
-        await msg.stream_token(stream_resp)
+    answer = result['response']
+    
+    source_documents = result['context']  # type: List[Document]
+    text_elements = []
+    
+    if source_documents:
+        for source_idx, source_doc in enumerate(source_documents):
+            
+            # Create the text element referenced in the message   
+            source_name = f"source - {source_idx}"           
+            text_elements.append(
+                cl.Text(content=source_doc.page_content, name=source_name)
+            )
+        source_names = [text_el.name for text_el in text_elements]
 
-    await msg.send()
+        if source_names:
+            answer += f"\nSources: {', '.join(source_names)}"
+        else:
+            answer += "\nNo sources found"
+    
+
+    await cl.Message(content=answer, elements=text_elements).send()
