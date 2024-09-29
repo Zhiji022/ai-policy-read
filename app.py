@@ -1,31 +1,11 @@
-from operator import itemgetter
-from pydantic import BaseModel, InstanceOf
-
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_openai import ChatOpenAI
-from langchain_qdrant import QdrantVectorStore
-from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableParallel
-
 import chainlit as cl
 
 from utils.prompts import RAG_PROMPT
 from utils.vector_store import get_default_documents, get_vector_store, process_uploaded_file
 from utils.models import EMBEDDING_MODEL, RAG_LLM
+from utils.rag import RAGRunnables, create_rag_chain
 
-
-class RAGRunnables(BaseModel):
-    rag_prompt_template: InstanceOf[ChatPromptTemplate]
-    vector_store: InstanceOf[QdrantVectorStore]
-    llm: InstanceOf[ChatOpenAI]
-        
-
-def create_rag_chain(rag_prompt_template, vector_store, llm):
-    retriever = vector_store.as_retriever(search_kwargs={"k": 5})
-    rag_chain = ({"context": itemgetter("question") | retriever, "question": itemgetter("question")}
-                    | RunnablePassthrough.assign(context=itemgetter("context"))
-                    | {"response": rag_prompt_template | llm | StrOutputParser(), "context": itemgetter("context")})
-    return rag_chain
 
 welcome_message = """Hi, I am your AI-policy assistant. I can help you understand how the AI industry is evolving, especially as it relates to politics.
 My answers will be based on the following two documents:
@@ -33,7 +13,6 @@ My answers will be based on the following two documents:
 2. 2022: Blueprint for an AI Bill of Rights: Making Automated Systems Work for the American People (PDF)\n
 If you need help with more updated information, upload a pdf file now.
 """
-
 
 @cl.on_chat_start
 async def start():

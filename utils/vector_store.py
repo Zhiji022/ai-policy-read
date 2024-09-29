@@ -65,7 +65,7 @@ def get_default_documents():
 
 def process_uploaded_file(file: AskFileResponse):
     '''
-    Process upleaded file using PyMuPDFLoader
+    Process uploaded file using PyMuPDFLoader
     '''
     chunking = ChunkDocument(file_path = file.path, 
                         loader = PyMuPDFLoader, 
