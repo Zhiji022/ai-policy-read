@@ -14,20 +14,33 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from chainlit.types import AskFileResponse
 
 from typing import List
-
+from abc import ABC, abstractmethod
 
 def tiktoken_len(text):
     tokens = tiktoken.encoding_for_model("gpt-4o-mini").encode(text)
     return len(tokens)
 
-class ChunkDocument:
+
+class Chunking(ABC):
+    
+    """Abstract method for basic and advanced chunking strategy"""
+    
+    def __init__(self, file_path: str, loader: BaseLoader, splitter: TextSplitter):
+        self.file_path = file_path
+        self.loader = loader
+        self.splitter = splitter
+        
+    @abstractmethod
+    def process_documents(self):
+        pass
+
+
+class ChunkDocument(Chunking):
     '''
     Choose your document loader and text splitter and chunk the document
     '''
     def __init__(self, file_path: str, loader: BaseLoader, splitter: TextSplitter):
-        self.file_path = file_path
-        self.loader = loader
-        self.splitter = splitter        
+        super().__init__(file_path, loader, splitter)
     
     def process_documents(self, **kwargs):
         '''

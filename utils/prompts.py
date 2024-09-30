@@ -9,3 +9,14 @@ Question:
 
 Answer:
 """
+
+QA_PROMPT = qa_prompt = """\
+Given the following context, you must generate questions based on only the provided context.
+
+You are to generate {n_questions} questions in a python list like the following, use backslash to escape any quote sign in the questions:
+
+["QUESTION #1", "QUESTION #2", ...]
+
+Context:
+{context}
+"""

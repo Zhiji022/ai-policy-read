@@ -4,7 +4,7 @@ import json
 from langchain_core.prompts import ChatPromptTemplate
 from ragas.metrics import faithfulness, answer_relevancy, context_recall, context_precision
 
-from evaluation.evaluation import evaluate_rag
+from utils.evaluation import evaluate_rag
 from utils.prompts import RAG_PROMPT
 from utils.vector_store import get_default_documents, get_vector_store
 from utils.models import EMBEDDING_MODEL, RAG_LLM
