@@ -116,7 +116,6 @@ multiprocess==0.70.16
 mygene==3.2.2
 mypy-extensions==1.0.0
 narwhals==1.9.1
-networkx==3.3
 nltk==3.9.1
 numpy==1.26.4
 openai==1.45.0
