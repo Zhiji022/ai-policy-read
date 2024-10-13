@@ -8,48 +8,51 @@ from utils.models import FINE_TUNED_EMBEDDING, RAG_LLM
 from utils.rag import RAGRunnables, create_rag_chain
 
 from urllib.request import urlopen
+import tempfile
 
 
 welcome_message = """Hi, I am your AI-policy assistant. I can help you understand how the AI industry is evolving, especially as it relates to politics.
 My answers will be based on the following two documents:
 1. 2024: National Institute of Standards and Technology (NIST) Artificial Intelligent Risk Management Framework (PDF)
 2. 2022: Blueprint for an AI Bill of Rights: Making Automated Systems Work for the American People (PDF)\n
-If you need help with more updated information, upload a pdf file now.
+If you need help with more updated information, upload a pdf file or provide a URL now.
 """
 
 @cl.on_chat_start
 async def start():
     
     # ask new document
-    res = await cl.AskActionMessage(
-        content=welcome_message,
-        actions=[
-            cl.Action(name="upload", value="upload", label="📄Upload"),
-            cl.Action(name="url", value="url", label="🛜URL"),
-            cl.Action(name="continue", value="continue", label="👍Continue"),
-        ],
-    ).send()
+    res = await cl.AskActionMessage(content=welcome_message,
+                                    actions=[cl.Action(name="upload", value="upload", label="📄Upload"),
+                                            cl.Action(name="url", value="url", label="🛜URL"),
+                                            cl.Action(name="continue", value="continue", label="🤷🏻‍♀️Continue")]
+                                    ).send()
     new_doc = None
-    web_docs = None
+    web_doc = None
     
-    if res and res.get("value") == "continue":
+    if res and res.get("value") == "continue": 
         pass
     
     elif res and res.get("value")=="url":
         
         url = await cl.AskUserMessage(content="Please provide a URL", timeout=30).send()
+        print(url)
         
         try:
-            with urlopen(url) as webpage:
-                web_content = webpage.read().decode()
-            # Save to file.
-            with open('data/new_info.html', 'w') as output:
-                output.write(web_content)
-            web_docs = process_webpage('data/new_info.html')
+            
+            with urlopen(url['content']) as webpage:
+                web_content = webpage.read()
+                
+            with tempfile.NamedTemporaryFile('w', suffix = '.html') as temp:
+                temp.write(web_content.decode())
+                temp.seek(0)
+                web_doc = process_webpage(temp.name)
+           
+            await cl.Message(content="New information accepted✅").send()
+        
         except:
-            await cl.Message(
-                content="Invalid URL. Skipping new info..."
-            ).send()
+            
+            await cl.Message(content="Invalid URL. Skipping new info...🚩").send()
     
     elif res and res.get("value") == "upload":
         files = await cl.AskFileMessage(
@@ -67,13 +70,12 @@ async def start():
         new_doc = process_uploaded_file(file)
     
     # process documents
-    # documents = get_default_documents()
     documents = get_default_documents()
     
     if new_doc:
         documents.extend(new_doc)
     elif web_doc:
-        documents.extend(web_docs)
+        documents.extend(web_doc)
     else:
         pass
     

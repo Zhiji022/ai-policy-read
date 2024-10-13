@@ -1,14 +1,10 @@
-# Welcome to Chainlit! 🚀🤖
+# Welcome to AI Policy Reader! 🚀🤖
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+We're excited to have you here. This web app is designed to foster meaningful discussions and provide insights into the evolving world of AI policies.
 
-## Useful Links 🔗
+## References
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+- [Blueprint for an AI Bill of Rights](https://www.whitehouse.gov/wp-content/uploads/2022/10/Blueprint-for-an-AI-Bill-of-Rights.pdf) 📚
+- [Artificial Intelligence Risk Management Framework: Generative Artificial Intelligence Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
-
-## Welcome screen
-
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+Whether you're a tech enthusiast, a policymaker, or simply curious about how artificial intelligence is shaping our future, we invite you to explore, learn, and share your thoughts. Together, we can help shape AI in a way that is ethical, transparent, and beneficial for everyone. Let's collaborate to make informed decisions and build a future where AI works for all of us. 💻😊
