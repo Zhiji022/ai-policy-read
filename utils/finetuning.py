@@ -14,9 +14,11 @@ def train_test_split_documents(documents: List, ratios: List= [6, 2, 2]):
     
     doc_length = len(documents)
     splits = [int(i*doc_length/sum(ratios)) for i in ratios]
-    documents = random.shuffle(documents)
+    sampled = [random.sample(documents, splits[i]) for i in range(3)]
     
-    return  documents[:splits[0]], documents[splits[0]:splits[1]], documents[splits[1]:]
+    # documents = random.shuffle(documents)
+    print(f'# of documents: {doc_length}')
+    return  sampled[0], sampled[1], sampled[2]
 
 def set_documents_ids(documents):
     id_set = set()

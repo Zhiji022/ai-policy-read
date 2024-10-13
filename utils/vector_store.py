@@ -1,7 +1,7 @@
 from langchain_community.document_loaders.base import BaseLoader
 from langchain_text_splitters.base import TextSplitter
 
-from langchain_community.document_loaders import PyMuPDFLoader
+from langchain_community.document_loaders import PyMuPDFLoader, BSHTMLLoader
 import tiktoken
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import PDFPlumberLoader
@@ -59,7 +59,7 @@ def get_default_documents():
                         loader = PyMuPDFLoader, 
                         splitter = RecursiveCharacterTextSplitter
                         )
-    chunks1 = chunking.process_documents(chunk_size = 300,
+    chunks1 = chunking.process_documents(chunk_size = 500,
                                     chunk_overlap = 0,
                                     length_function = tiktoken_len
                                     )
@@ -68,7 +68,7 @@ def get_default_documents():
                         loader = PDFPlumberLoader, 
                         splitter = RecursiveCharacterTextSplitter
                         )
-    chunks2 = chunking.process_documents(chunk_size = 300,
+    chunks2 = chunking.process_documents(chunk_size = 500,
                                     chunk_overlap = 0,
                                     length_function = tiktoken_len
                                     )
@@ -84,10 +84,14 @@ def process_uploaded_file(file: AskFileResponse):
                         loader = PyMuPDFLoader, 
                         splitter = RecursiveCharacterTextSplitter
                         )
-    return chunking.process_documents(chunk_size = 300,
+    return chunking.process_documents(chunk_size = 500,
                                     chunk_overlap = 0,
                                     length_function = tiktoken_len
                                     )
+
+def process_webpage(path):
+    loader = BSHTMLLoader(file_path=path)
+    return loader.load_and_split()
 
 def get_vector_store(documents: List, embedding_model: HuggingFaceEmbeddings, emb_dim=768) -> QdrantVectorStore:
     '''

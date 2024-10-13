@@ -2,26 +2,27 @@
 import pandas as pd
 
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings
 
 from ragas.testset.generator import TestsetGenerator
 from ragas.testset.evolutions import simple, reasoning, multi_context
 from ragas import evaluate
 
-from utils.vector_store import get_default_documents
+from utils.advanced_chunking import get_enhanced_documents
+from utils.models import EMBEDDING_MODEL
 
 from datasets import Dataset
 
-def generate_ragas_testset(save_path='data/testset.csv', num_qa_pairs=5):
-    documents = get_default_documents()
+def generate_ragas_testset(save_path='data/testset.csv', num_qa_pairs=20):
+    documents = get_enhanced_documents(chunk_size=500, chunk_overlap=40)
     
     generator_llm = ChatOpenAI(model="gpt-3.5-turbo")
     critic_llm = ChatOpenAI(model="gpt-4o-mini")
-    embeddings = OpenAIEmbeddings(model='text-embedding-ada-002')
 
     generator = TestsetGenerator.from_langchain(
         generator_llm,
         critic_llm,
-        embeddings
+        EMBEDDING_MODEL
     )
 
     distributions = {

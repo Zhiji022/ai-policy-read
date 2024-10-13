@@ -2,9 +2,12 @@ from langchain_core.prompts import ChatPromptTemplate
 import chainlit as cl
 
 from utils.prompts import RAG_PROMPT
-from utils.vector_store import get_default_documents, get_vector_store, process_uploaded_file
-from utils.models import EMBEDDING_MODEL, RAG_LLM
+from utils.vector_store import get_default_documents, get_vector_store, process_uploaded_file, process_webpage
+# from utils.advanced_chunking import get_enhanced_documents
+from utils.models import FINE_TUNED_EMBEDDING, RAG_LLM
 from utils.rag import RAGRunnables, create_rag_chain
+
+from urllib.request import urlopen
 
 
 welcome_message = """Hi, I am your AI-policy assistant. I can help you understand how the AI industry is evolving, especially as it relates to politics.
@@ -22,15 +25,32 @@ async def start():
         content=welcome_message,
         actions=[
             cl.Action(name="upload", value="upload", label="📄Upload"),
+            cl.Action(name="url", value="url", label="🛜URL"),
             cl.Action(name="continue", value="continue", label="👍Continue"),
         ],
     ).send()
-
     new_doc = None
+    web_docs = None
     
     if res and res.get("value") == "continue":
         pass
+    
+    elif res and res.get("value")=="url":
         
+        url = await cl.AskUserMessage(content="Please provide a URL", timeout=30).send()
+        
+        try:
+            with urlopen(url) as webpage:
+                web_content = webpage.read().decode()
+            # Save to file.
+            with open('data/new_info.html', 'w') as output:
+                output.write(web_content)
+            web_docs = process_webpage('data/new_info.html')
+        except:
+            await cl.Message(
+                content="Invalid URL. Skipping new info..."
+            ).send()
+    
     elif res and res.get("value") == "upload":
         files = await cl.AskFileMessage(
             content="Please upload a pdf file to begin!",
@@ -47,14 +67,20 @@ async def start():
         new_doc = process_uploaded_file(file)
     
     # process documents
+    # documents = get_default_documents()
     documents = get_default_documents()
+    
     if new_doc:
         documents.extend(new_doc)
+    elif web_doc:
+        documents.extend(web_docs)
+    else:
+        pass
     
     # create rag chain
     rag_runnables = RAGRunnables(
                         rag_prompt_template = ChatPromptTemplate.from_template(RAG_PROMPT),
-                        vector_store = get_vector_store(documents, EMBEDDING_MODEL),
+                        vector_store = get_vector_store(documents, FINE_TUNED_EMBEDDING, emb_dim=384),
                         llm = RAG_LLM
                     )
     rag_chain = create_rag_chain(rag_runnables.rag_prompt_template, 
