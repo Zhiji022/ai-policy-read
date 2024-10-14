@@ -36,9 +36,9 @@ To overcome the cons of the default chunking, an enhanced method is proposed and
 - Text: markdown loader
 - Table: pdfplumber llm 
 - html: beautiful soup loader
-By loading and chunking text as markdown, the nature structure of the document is preserved and easily detectable. Thus, the logic and of the text boundary is much closer to what it originally intended. Since the tables in the document have clear and unified pattern, the parser successfully extracted the information without being distorted by the format. The bs4 loader is able to load the html file which is provided by the user by implementing the Beautiful Soup library.
-Pros: texts are more logically chunked and information are better groupped and preserved.
-Cons: some manual cleaning is required
+By loading and chunking text as markdown, the nature structure of the document is preserved and easily detectable. Thus, the logic and of the text boundary is much closer to what it originally intended. Since the tables in the document have clear and unified pattern, the parser successfully extracted the information without being distorted by the format. The bs4 loader is able to load the html file which is provided by the user by implementing the Beautiful Soup library.  
+Pros: texts are more logically chunked and information are better groupped and preserved.  
+Cons: some manual cleaning is required.  
 
 #### Finetuning embedding model
 Two embedding models were tested. The snowflake-arctic-embed-m-v1.5 as base and the fine tuned snowflake-arctic-embed-xs. The selection is based on the [MTEB leaderboard](https://huggingface.co/spaces/mteb/leaderboard) on retrieval task. The model was fine tuned using a synthetically generated dataset.
@@ -48,7 +48,7 @@ Combination of the chunking strategies and models were evaluated using ragas fra
 - faithfulness: diviation of answers from to the context
 - answer relevancy: answers relevant to the question
 - context precision: most agreed context to the ground truth are ranked high
-- context recall: alignment of the context with the ground truth
+- context recall: alignment of the context with the ground truth  
 For detail, please refer to the [ragas documentation](https://docs.ragas.io/en/stable/concepts/metrics/index.html)
 
 And here is the evaluation:
@@ -62,10 +62,10 @@ And here is the evaluation:
 When base model is used, advanced chunking boosted all metrics except the faithfulness. When the default chunking method is used, finetuning the model significantly helped with all metrics. However, it is surprising that the combination of default chunking and finetuned model combination beats the advanced chunking and finetuned model combination. While there is not enough information to make a conclusion, it is obvious that a tiny finetuned model easily out performs a base foundation model. 
 
 #### Managing expection
-- What is the story that you will give to the CEO to tell the whole company at the launch next month?
-To start, I will present some questions and answers from the app such as:
-Q: What are some examples of known issues that should be reported in GAI systems?
-A: Harmful Bias and Homogenization; Dangerous, Violent, or Hateful Content; Obscene, Degrading, and/or Abusive Content; Confabulation; Information Security Incidents; Inappropriate or Harmful Content Generation; Errors and Near-Misses
+- What is the story that you will give to the CEO to tell the whole company at the launch next month?  
+To start, I will present some questions and answers from the app such as:  
+Q: What are some examples of known issues that should be reported in GAI systems?  
+A: Harmful Bias and Homogenization; Dangerous, Violent, or Hateful Content; Obscene, Degrading, and/or Abusive Content; Confabulation; Information Security Incidents; Inappropriate or Harmful Content Generation; Errors and Near-Misses.  
 Then, I will invite the CEO and other leaders to ask their questions and concerns and use the bot to get answers and contexts
 
 - There appears to be important information not included in our build, for instance, the 270-day update on the 2023 executive order on Safe, Secure, and Trustworthy AI.  How might you incorporate relevant white-house briefing information into future versions? 
