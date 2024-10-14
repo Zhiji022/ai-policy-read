@@ -16,7 +16,7 @@ This is the midterm assignment of the AI Engineering Bootcamp from [AI Makerspac
 - [2024: National Institute of Standards and Technology (NIST) Artificial Intelligent Risk Management Framework (PDF)](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
 
 The following mind map summarizes the tasks and questions that will be addressed through the development of this app. Details will be discussed below.
-<p align = "center" draggable=”false” ><img src="https://github.com/Zhiji022/ai-policy-read/blob/main/data/mindmap.png" 
+<p align = "center" draggable=”false” ><img src="https://github.com/Zhiji022/ai-policy-read/blob/main/images/mindmap.png"
      width="auto"
      height="auto"/>
 </p>
@@ -58,3 +58,15 @@ And here is the evaluation:
 | advanced     | base      | 0.7227           | 0.9565               | 0.7870             | 0.8539                |
 | default      | finetuned | 0.9316           | 0.9501               | 0.8972             | 0.9273                |
 | advanced     | fintuned  | 0.8106           | 0.9589               | 0.8565             | 0.9106                |
+
+When base model is used, advanced chunking boosted all metrics except the faithfulness. When the default chunking method is used, finetuning the model significantly helped with all metrics. However, it is surprising that the combination of default chunking and finetuned model combination beats the advanced chunking and finetuned model combination. While there is not enough information to make a conclusion, it is obvious that a tiny finetuned model easily out performs a base foundation model. 
+
+#### Managing expection
+- What is the story that you will give to the CEO to tell the whole company at the launch next month?
+To start, I will present some questions and answers from the app such as:
+Q: What are some examples of known issues that should be reported in GAI systems?
+A: Harmful Bias and Homogenization; Dangerous, Violent, or Hateful Content; Obscene, Degrading, and/or Abusive Content; Confabulation; Information Security Incidents; Inappropriate or Harmful Content Generation; Errors and Near-Misses
+Then, I will invite the CEO and other leaders to ask their questions and concerns and use the bot to get answers and contexts
+
+- There appears to be important information not included in our build, for instance, the 270-day update on the 2023 executive order on Safe, Secure, and Trustworthy AI.  How might you incorporate relevant white-house briefing information into future versions? 
+Users will be prompted to provide additional information in the form of URL or uploading a pdf file. The app will process the those information in the back and add them to the context.

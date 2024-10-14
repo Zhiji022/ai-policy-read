@@ -43,16 +43,18 @@ async def start():
             with urlopen(url['content']) as webpage:
                 web_content = webpage.read()
                 
-            with tempfile.NamedTemporaryFile('w', suffix = '.html') as temp:
+            with tempfile.NamedTemporaryFile('w', suffix = '.html', dir='/home/user/my_tempfile', delete=False) as temp:
+            # with tempfile.NamedTemporaryFile('w', suffix = '.html', delete=False) as temp:
                 temp.write(web_content.decode())
                 temp.seek(0)
+                print(temp.name)
                 web_doc = process_webpage(temp.name)
            
             await cl.Message(content="New information accepted✅").send()
         
         except:
             
-            await cl.Message(content="Invalid URL. Skipping new info...🚩").send()
+            await cl.Message(content="Invalid URL. Skipping new info...🚩", disable_human_feedback=True).send()
     
     elif res and res.get("value") == "upload":
         files = await cl.AskFileMessage(
@@ -89,6 +91,7 @@ async def start():
                                  rag_runnables.vector_store, 
                                  rag_runnables.llm)
     
+    await cl.Message(content="Processing complete...", disable_human_feedback=True).send()
     cl.user_session.set('chain', rag_chain)
 
 @cl.on_message    
